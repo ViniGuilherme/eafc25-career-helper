@@ -1,0 +1,106 @@
+body {
+    font-family: sans-serif;
+    background: #1e293b;
+    color: white;
+    margin: 0;
+    padding: 20px;
+  }
+  
+  .container {
+    max-width: 800px;
+    margin: auto;
+    background: #334155;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+  }
+  
+  h1, h2 {
+    text-align: center;
+  }
+  
+  .teams {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .teams button {
+    background: #ffffff;
+    color: #1e293b;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .add-player {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+  }
+  
+  .add-player input {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+  }
+  
+  .add-player button {
+    padding: 10px 20px;
+    border: none;
+    background: #10b981;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  li {
+    display: flex;
+    justify-content: space-between;
+    background: #475569;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+  }
+  
+  li div {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  li button {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  li button:nth-child(3) {
+    background: #3b82f6;
+    color: white;
+  }
+  
+  li button:nth-child(4) {
+    background: #a855f7;
+    color: white;
+  }
+  
+  li button:nth-child(5) {
+    background: #ef4444;
+    color: white;
+  }
+  
+  .hidden {
+    display: none;
+  }
+  

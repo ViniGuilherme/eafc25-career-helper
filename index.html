@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EAFC 25 - Auxiliador de Carreira</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Auxiliador de Carreira - EAFC 25</h1>
+
+    <div class="teams">
+      <button onclick="selectTeam('Real Valladolid')">Real Valladolid</button>
+    </div>
+
+    <div id="team-section" class="hidden">
+      <h2 id="team-name"></h2>
+      <div class="add-player">
+        <input type="text" id="player-input" placeholder="Adicionar jogador" />
+        <button onclick="addPlayer()">Adicionar</button>
+      </div>
+      <ul id="player-list"></ul>
+    </div>
+  </div>
+
+  <script>
+    const teams = {
+      "Real Valladolid": [
+        "John Victor", "Lucas Oliveira", "Jordi Masip", "Luis Pérez", "David Torres",
+        "Flavien Boyomo", "Javi Sánchez", "Escudero", "Cédric", "Kennedy",
+        "Stipe Biuk", "Monchu", "Lucas Rosa", "Tárrega", "Victor Meseguer",
+        "Tunde", "Anuar", "Sylla", "Raúl Moro", "Iván Sánchez", "Cyle Larin"
+      ]
+    };
+
+    let selectedTeam = "";
+    let stats = {};
+
+    function selectTeam(team) {
+      selectedTeam = team;
+      document.getElementById("team-name").innerText = "Time: " + team;
+      document.getElementById("team-section").classList.remove("hidden");
+      renderPlayers(teams[team]);
+    }
+
+    function addPlayer() {
+      const input = document.getElementById("player-input");
+      const name = input.value.trim();
+      if (name && teams[selectedTeam]) {
+        teams[selectedTeam].push(name);
+        input.value = "";
+        renderPlayers(teams[selectedTeam]);
+      }
+    }
+
+    function removePlayer(name) {
+      teams[selectedTeam] = teams[selectedTeam].filter(p => p !== name);
+      delete stats[name];
+      renderPlayers(teams[selectedTeam]);
+    }
+
+    function updateStat(name, type) {
+      stats[name] = stats[name] || { goals: 0, assists: 0 };
+      stats[name][type]++;
+      renderPlayers(teams[selectedTeam]);
+    }
+
+    function renderPlayers(players) {
+      const list = document.getElementById("player-list");
+      list.innerHTML = "";
+      players.forEach(player => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <span>${player}</span>
+          <div>
+            <span>⚽ ${stats[player]?.goals || 0}</span>
+            <span>🎯 ${stats[player]?.assists || 0}</span>
+            <button onclick="updateStat('${player}', 'goals')">+1 Gol</button>
+            <button onclick="updateStat('${player}', 'assists')">+1 Assist</button>
+            <button onclick="removePlayer('${player}')">Remover</button>
+          </div>
+        `;
+        list.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
