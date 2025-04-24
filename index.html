@@ -16,10 +16,24 @@
 
     <div id="team-section" class="hidden">
       <h2 id="team-name"></h2>
+
+      <!-- Filtro para ordenação -->
+      <div class="filter">
+        <label for="filter">Ordenar por:</label>
+        <select id="filter" onchange="applyFilter()">
+          <option value="">Selecione</option>
+          <option value="goals">Gols</option>
+          <option value="assists">Assistências</option>
+          <option value="games">Jogos</option>
+        </select>
+      </div>
+
+      <!-- Adicionar jogador -->
       <div class="add-player">
         <input type="text" id="player-input" placeholder="Adicionar jogador" />
         <button onclick="addPlayer()">Adicionar</button>
       </div>
+
       <ul id="player-list"></ul>
     </div>
   </div>
@@ -29,36 +43,17 @@
     const STORAGE_STATS_KEY   = "eafc25_stats";
 
     const initialPlayers = [
-      "John Victor", "Lucas Oliveira", "Jordi Masip", "Luis Pérez", "David Torres",
-      "Flavien Boyomo", "Javi Sánchez", "Escudero", "Cédric", "Kennedy",
-      "Stipe Biuk", "Monchu", "Lucas Rosa", "Tárrega", "Victor Meseguer",
-      "Tunde", "Anuar", "Sylla", "Raúl Moro", "Iván Sánchez", "Cyle Larin"
+      "John Victor","Lucas Oliveira","Jordi Masip","Luis Pérez","David Torres",
+      "Flavien Boyomo","Javi Sánchez","Escudero","Cédric","Kennedy",
+      "Stipe Biuk","Monchu","Lucas Rosa","Tárrega","Victor Meseguer",
+      "Tunde","Anuar","Sylla","Raúl Moro","Iván Sánchez","Cyle Larin"
     ];
 
     let teams = { "Real Valladolid": [] };
     let selectedTeam = "";
-    let stats = {};
-
-    window.addEventListener("DOMContentLoaded", () => {
-      const savedPlayers = localStorage.getItem(STORAGE_PLAYERS_KEY);
-      const savedStats   = localStorage.getItem(STORAGE_STATS_KEY);
-
-      teams["Real Valladolid"] = savedPlayers
-        ? JSON.parse(savedPlayers)
-        : initialPlayers.slice();
-
-      stats = savedStats
-        ? JSON.parse(savedStats)
-        : {};
-
-      // selecionar automaticamente, se preferir:
-      // selectTeam("Real Valladolid");
-    });
-
-    function persist() {
-      localStorage.setItem(STORAGE_PLAYERS_KEY, JSON.stringify(teams["Real Valladolid"]));
-      localStorage.setItem(STORAGE_STATS_KEY,   JSON.stringify(stats));
-    }
+    // Leitura inicial de players e stats do localStorage
+    let stats   = JSON.parse(localStorage.getItem(STORAGE_STATS_KEY))   || {};
+    teams["Real Valladolid"] = JSON.parse(localStorage.getItem(STORAGE_PLAYERS_KEY)) || initialPlayers.slice();
 
     function selectTeam(team) {
       selectedTeam = team;
@@ -70,50 +65,76 @@
     function addPlayer() {
       const input = document.getElementById("player-input");
       const name = input.value.trim();
-      if (name && teams[selectedTeam]) {
+      if (name && teams[selectedTeam] && !teams[selectedTeam].includes(name)) {
         teams[selectedTeam].push(name);
+        stats[name] = { goals: 0, assists: 0, games: 0 };
         input.value = "";
+        persistAll();
         renderPlayers(teams[selectedTeam]);
-        persist();
       }
     }
 
     function removePlayer(name) {
       teams[selectedTeam] = teams[selectedTeam].filter(p => p !== name);
       delete stats[name];
+      persistAll();
       renderPlayers(teams[selectedTeam]);
-      persist();
     }
 
-    function updateStat(name, type, delta) {
-      stats[name] = stats[name] || { goals: 0, assists: 0 };
+    function updateStat(name, type, delta=1) {
+      stats[name] = stats[name] || { goals: 0, assists: 0, games: 0 };
       stats[name][type] = Math.max(0, stats[name][type] + delta);
+      persistAll();
       renderPlayers(teams[selectedTeam]);
-      persist();
+    }
+
+    function applyFilter() {
+      const filterValue = document.getElementById("filter").value;
+      const original = teams[selectedTeam];
+      if (!filterValue) {
+        return renderPlayers(original);
+      }
+      const sorted = [...original].sort((a,b) => {
+        return (stats[b]?.[filterValue]||0) - (stats[a]?.[filterValue]||0);
+      });
+      renderPlayers(sorted);
     }
 
     function renderPlayers(players) {
       const list = document.getElementById("player-list");
       list.innerHTML = "";
       players.forEach(player => {
-        const playerStats = stats[player] || { goals: 0, assists: 0 };
+        const s = stats[player] || { goals: 0, assists: 0, games: 0 };
         const li = document.createElement("li");
         li.innerHTML = `
           <span>${player}</span>
-          <div>
-            <span>⚽ ${playerStats.goals}</span>
-            <button onclick="updateStat('${player}', 'goals', 1)">+1 Gol</button>
-            <button onclick="updateStat('${player}', 'goals', -1)">–1 Gol</button>
-            
-            <span>🎯 ${playerStats.assists}</span>
-            <button onclick="updateStat('${player}', 'assists', 1)">+1 Assist</button>
-            <button onclick="updateStat('${player}', 'assists', -1)">–1 Assist</button>
-            
+          <div class="stats-container">
+            <div class="stat">
+              <button onclick="updateStat('${player}','games',-1)">–1 Jogo</button>
+              <span>🕹️ ${s.games}</span>
+              <button onclick="updateStat('${player}','games',1)">+1 Jogo</button>
+            </div>
+            <div class="stat">
+              <button onclick="updateStat('${player}','goals',-1)">–1 Gol</button>
+              <span>⚽ ${s.goals}</span>
+              <button onclick="updateStat('${player}','goals',1)">+1 Gol</button>
+            </div>
+            <div class="stat">
+              <button onclick="updateStat('${player}','assists',-1)">–1 Assist</button>
+              <span>🎯 ${s.assists}</span>
+              <button onclick="updateStat('${player}','assists',1)">+1 Assist</button>
+            </div>
             <button onclick="removePlayer('${player}')">Remover</button>
           </div>
         `;
         list.appendChild(li);
       });
+    }
+
+    // Salva tanto players quanto stats no localStorage
+    function persistAll() {
+      localStorage.setItem(STORAGE_PLAYERS_KEY, JSON.stringify(teams[selectedTeam]));
+      localStorage.setItem(STORAGE_STATS_KEY,   JSON.stringify(stats));
     }
   </script>
 </body>
