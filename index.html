@@ -25,17 +25,40 @@
   </div>
 
   <script>
-    const teams = {
-      "Real Valladolid": [
-        "John Victor", "Lucas Oliveira", "Jordi Masip", "Luis Pérez", "David Torres",
-        "Flavien Boyomo", "Javi Sánchez", "Escudero", "Cédric", "Kennedy",
-        "Stipe Biuk", "Monchu", "Lucas Rosa", "Tárrega", "Victor Meseguer",
-        "Tunde", "Anuar", "Sylla", "Raúl Moro", "Iván Sánchez", "Cyle Larin"
-      ]
-    };
+    const STORAGE_PLAYERS_KEY = "eafc25_players";
+    const STORAGE_STATS_KEY   = "eafc25_stats";
 
+    const initialPlayers = [
+      "John Victor", "Lucas Oliveira", "Jordi Masip", "Luis Pérez", "David Torres",
+      "Flavien Boyomo", "Javi Sánchez", "Escudero", "Cédric", "Kennedy",
+      "Stipe Biuk", "Monchu", "Lucas Rosa", "Tárrega", "Victor Meseguer",
+      "Tunde", "Anuar", "Sylla", "Raúl Moro", "Iván Sánchez", "Cyle Larin"
+    ];
+
+    let teams = { "Real Valladolid": [] };
     let selectedTeam = "";
     let stats = {};
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const savedPlayers = localStorage.getItem(STORAGE_PLAYERS_KEY);
+      const savedStats   = localStorage.getItem(STORAGE_STATS_KEY);
+
+      teams["Real Valladolid"] = savedPlayers
+        ? JSON.parse(savedPlayers)
+        : initialPlayers.slice();
+
+      stats = savedStats
+        ? JSON.parse(savedStats)
+        : {};
+
+      // selecionar automaticamente, se preferir:
+      // selectTeam("Real Valladolid");
+    });
+
+    function persist() {
+      localStorage.setItem(STORAGE_PLAYERS_KEY, JSON.stringify(teams["Real Valladolid"]));
+      localStorage.setItem(STORAGE_STATS_KEY,   JSON.stringify(stats));
+    }
 
     function selectTeam(team) {
       selectedTeam = team;
@@ -51,6 +74,7 @@
         teams[selectedTeam].push(name);
         input.value = "";
         renderPlayers(teams[selectedTeam]);
+        persist();
       }
     }
 
@@ -58,26 +82,33 @@
       teams[selectedTeam] = teams[selectedTeam].filter(p => p !== name);
       delete stats[name];
       renderPlayers(teams[selectedTeam]);
+      persist();
     }
 
-    function updateStat(name, type) {
+    function updateStat(name, type, delta) {
       stats[name] = stats[name] || { goals: 0, assists: 0 };
-      stats[name][type]++;
+      stats[name][type] = Math.max(0, stats[name][type] + delta);
       renderPlayers(teams[selectedTeam]);
+      persist();
     }
 
     function renderPlayers(players) {
       const list = document.getElementById("player-list");
       list.innerHTML = "";
       players.forEach(player => {
+        const playerStats = stats[player] || { goals: 0, assists: 0 };
         const li = document.createElement("li");
         li.innerHTML = `
           <span>${player}</span>
           <div>
-            <span>⚽ ${stats[player]?.goals || 0}</span>
-            <span>🎯 ${stats[player]?.assists || 0}</span>
-            <button onclick="updateStat('${player}', 'goals')">+1 Gol</button>
-            <button onclick="updateStat('${player}', 'assists')">+1 Assist</button>
+            <span>⚽ ${playerStats.goals}</span>
+            <button onclick="updateStat('${player}', 'goals', 1)">+1 Gol</button>
+            <button onclick="updateStat('${player}', 'goals', -1)">–1 Gol</button>
+            
+            <span>🎯 ${playerStats.assists}</span>
+            <button onclick="updateStat('${player}', 'assists', 1)">+1 Assist</button>
+            <button onclick="updateStat('${player}', 'assists', -1)">–1 Assist</button>
+            
             <button onclick="removePlayer('${player}')">Remover</button>
           </div>
         `;
